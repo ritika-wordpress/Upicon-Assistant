@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
+*.egg-info/
+
+# Generated data (crawled content, embeddings, cache) — rebuild via
+# crawler.py / build_index.py / /admin/reindex, don't commit
+backend/data/
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

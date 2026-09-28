@@ -1,0 +1,33 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+httpx
+pydantic
+python-multipart
+
+# static crawling
+crawl4ai
+# used directly by router.py to strip HTML from API-sourced text fields
+# (previously only pulled in transitively via crawl4ai)
+beautifulsoup4
+# crawl4ai declares its litellm dependency as "litellm~=1.48" (only two
+# version components), which per PEP 440 actually means "any 1.x >= 1.48"
+# -- not "any 1.48.x". Left unpinned, pip resolves up into 1.9x releases
+# that depend on `fastuuid`, which has no prebuilt Windows wheel and needs
+# Rust/Cargo to compile. Pinning to a specific 1.48.x release (before
+# fastuuid was introduced) avoids that entirely.
+litellm
+
+# semantic search
+sentence-transformers
+faiss-cpu
+numpy
+
+# chit-chat / typo-tolerant intent matching
+rapidfuzz
+
+# LLM + speech-to-text
+groq
+
+# shared server-side cache uses sqlite3 (Python standard library) — no
+# extra dependency needed
