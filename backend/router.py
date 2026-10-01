@@ -53,7 +53,8 @@ DYNAMIC_ROUTES = [
     ),
     (
         ["odop", "one district one product", "product of the month",
-         "district special product", "ओडीओपी", "जिला उत्पाद"],
+         "district special product", "ओडीओपी", "जिला उत्पाद",
+         "spotlight", "स्पॉटलाइट"],
         "odop",
     ),
 ]

@@ -1,9 +1,12 @@
+import json
 import os
+import re
 import tempfile
 import uuid
 
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 import cache
@@ -11,7 +14,11 @@ import config
 import faq
 import intent
 import llm
+import moderation
+import query_rewrite
 import router
+import sections
+import spotlight
 import spellcheck
 import vector_store
 
@@ -42,6 +49,16 @@ class ChatResponse(BaseModel):
     reply: str
     session_id: str
     intent: str  # "chitchat" | "answer"
+    extra_replies: list[str] = []  # follow-up messages (top item, link) for section questions
+
+
+async def _get_context(rewritten: str, corrected: str) -> list[str]:
+    """Retrieve with the cleaned-up question; if that finds nothing, retry
+    with the spell-corrected original wording."""
+    ctx = await router.gather_context(rewritten)
+    if not ctx and rewritten != corrected:
+        ctx = await router.gather_context(corrected)
+    return ctx
 
 
 def _detect_lang(text: str, hint: str | None) -> str:
@@ -81,6 +98,23 @@ async def chat(req: ChatRequest):
     history = _SESSIONS.setdefault(session_id, [])
     lang = _resolve_session_lang(session_id, req.message, req.lang)
 
+    # 0) abusive / offensive language - politely ask for appropriate language
+    if moderation.is_abusive(req.message):
+        print("STEP moderation: abusive message", flush=True)
+        return ChatResponse(reply=moderation.reply(lang), session_id=session_id, intent="moderated")
+
+    # 0b) Spotlight chip - one headline each from ODOP Product of the Month,
+    # Success Stories and UP Ke Karigar, straight from the API (no LLM)
+    if spotlight.is_spotlight_query(req.message):
+        spot = await spotlight.build_messages(lang)
+        if spot:
+            print("STEP spotlight answered", flush=True)
+            history.append({"role": "user", "content": req.message})
+            history.append({"role": "assistant", "content": "\n\n".join(spot)})
+            return ChatResponse(
+                reply=spot[0], session_id=session_id, intent="spotlight", extra_replies=spot[1:]
+            )
+
     # 1) chit-chat / stopword short-circuit — no retrieval, no LLM call
     label = intent.detect(req.message)
     if label is not None:
@@ -109,19 +143,175 @@ async def chat(req: ChatRequest):
         return ChatResponse(reply=reply, session_id=session_id, intent="faq")
 
     # 4) real question — gather static + dynamic context, then ask the LLM
+    rewritten = await query_rewrite.rewrite(corrected, history)
+    section_key = sections.match(corrected) or sections.match(req.message)
+    if rewritten == query_rewrite.OFF_TOPIC and section_key:
+        rewritten = corrected  # a known site section is never off-topic
+    if rewritten == query_rewrite.OFF_TOPIC:
+        # clearly not about UPICON - politely say what this assistant is for
+        reply = llm.out_of_scope_reply(lang)
+        history.append({"role": "user", "content": req.message})
+        history.append({"role": "assistant", "content": reply})
+        return ChatResponse(reply=reply, session_id=session_id, intent="off_topic")
     print("STEP 2: calling router.gather_context", flush=True)
-    context_snippets = await router.gather_context(corrected)
+    context_snippets = await _get_context(rewritten, corrected)
     print("STEP 3: router done, got", len(context_snippets), "snippets", flush=True)
 
     print("STEP 4: calling llm.generate_answer", flush=True)
-    reply = llm.generate_answer(corrected, context_snippets, history, lang)
+    reply = llm.generate_answer(rewritten, context_snippets, history, lang, original=req.message)
     print("STEP 5: llm done", flush=True)
 
+    chunks = _split_parts(reply)
+    reply, extras = chunks[0], chunks[1:]
+    if section_key:
+        extras += await sections.follow_up_messages(section_key, lang)
+
     history.append({"role": "user", "content": req.message})
-    history.append({"role": "assistant", "content": reply})
+    history.append({"role": "assistant", "content": "\n\n".join([reply] + extras)})
 
     print("STEP 6: returning response", flush=True)
-    return ChatResponse(reply=reply, session_id=session_id, intent="answer")
+    return ChatResponse(reply=reply, session_id=session_id, intent="answer", extra_replies=extras)
+
+
+_BLANK_LINE_RE = re.compile(r"\n[ \t]*\n")
+
+
+def _split_parts(text: str) -> list[str]:
+    """Split a finished reply into short chat messages at blank lines."""
+    parts = [p.strip() for p in _BLANK_LINE_RE.split(text or "")]
+    return [p for p in parts if p] or [(text or "").strip()]
+
+
+class _PartSplitter:
+    """Turns a streamed reply into several short chat messages: text arrives
+    in arbitrary chunks, and every blank line ends one message and starts the
+    next. feed() returns ("delta", text) / ("break",) events, so the first
+    part still streams live and the rest follow as their own bubbles."""
+
+    def __init__(self):
+        self.buf = ""
+        self.at_start = True  # nothing shown yet in the current part
+
+    def feed(self, delta: str) -> list[tuple]:
+        self.buf += delta
+        # hold back trailing whitespace: it may be one half of a blank line
+        # that is split across two network chunks
+        tail = re.search(r"[ \t\n]*$", self.buf)
+        text, self.buf = self.buf[: tail.start()], tail.group(0)
+        events: list[tuple] = []
+        pieces = _BLANK_LINE_RE.split(text)
+        for i, piece in enumerate(pieces):
+            if self.at_start:
+                piece = piece.lstrip()
+            if piece:
+                events.append(("delta", piece))
+                self.at_start = False
+            if i < len(pieces) - 1 and not self.at_start:
+                events.append(("break",))
+                self.at_start = True
+        return events
+
+
+def _ndjson(obj: dict) -> str:
+    return json.dumps(obj, ensure_ascii=False) + "\n"
+
+
+@app.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    """Same pipeline as /chat, but the reply is streamed as newline-delimited
+    JSON: {"session_id"}, then {"delta": "..."} pieces, then {"done": true}."""
+    session_id = req.session_id or str(uuid.uuid4())
+    history = _SESSIONS.setdefault(session_id, [])
+    lang = _resolve_session_lang(session_id, req.message, req.lang)
+
+    async def gen():
+        yield _ndjson({"session_id": session_id})
+        parts: list[str] = []
+        store = True  # abusive messages are not kept in the conversation history
+        try:
+            if moderation.is_abusive(req.message):
+                store = False
+                text = moderation.reply(lang)
+                parts.append(text)
+                yield _ndjson({"delta": text})
+                label = "__abusive__"  # skip the rest of the pipeline
+            else:
+                label = None
+                if spotlight.is_spotlight_query(req.message):
+                    spot = await spotlight.build_messages(lang)
+                    if spot:
+                        # one chat bubble per spotlight item, each with its link
+                        for i, text in enumerate(spot):
+                            if i:
+                                yield _ndjson({"new_message": True})
+                                parts.append("\n\n")
+                            parts.append(text)
+                            yield _ndjson({"delta": text})
+                        label = "__spotlight__"  # answered; skip the rest
+                if label is None:
+                    label = intent.detect(req.message)
+            if label in ("__abusive__", "__spotlight__"):
+                pass
+            elif label is not None:
+                text = intent.canned_reply(label, lang)
+                parts.append(text)
+                yield _ndjson({"delta": text})
+            else:
+                corrected = spellcheck.correct_query(req.message)
+                faq_answer = faq.match(corrected)
+                if faq_answer is not None:
+                    text = faq.canned_reply(faq_answer, lang)
+                    parts.append(text)
+                    yield _ndjson({"delta": text})
+                else:
+                    rewritten = await query_rewrite.rewrite(corrected, history)
+                    section_key = sections.match(corrected) or sections.match(req.message)
+                    if rewritten == query_rewrite.OFF_TOPIC and section_key:
+                        rewritten = corrected  # a known site section is never off-topic
+                    if rewritten == query_rewrite.OFF_TOPIC:
+                        text = llm.out_of_scope_reply(lang)
+                        parts.append(text)
+                        yield _ndjson({"delta": text})
+                    else:
+                        context_snippets = await _get_context(rewritten, corrected)
+                        splitter = _PartSplitter()
+                        async for delta in llm.stream_answer(
+                            rewritten, context_snippets, history, lang, original=req.message
+                        ):
+                            # short messages: every blank line in the reply
+                            # starts a new chat bubble (no links added)
+                            for ev in splitter.feed(delta):
+                                if ev[0] == "break":
+                                    parts.append("\n\n")
+                                    yield _ndjson({"new_message": True})
+                                else:
+                                    parts.append(ev[1])
+                                    yield _ndjson({"delta": ev[1]})
+                        # Section question ("articles and research papers"):
+                        # message 1 (above) = what it is, then message 2 = its
+                        # top item, message 3 = the link. The client starts a
+                        # fresh chat bubble at every "new_message" event.
+                        if section_key and parts:
+                            for extra in await sections.follow_up_messages(section_key, lang):
+                                parts.append("\n\n" + extra)
+                                yield _ndjson({"new_message": True})
+                                yield _ndjson({"delta": extra})
+        except Exception as exc:  # noqa: BLE001 - tell the client, don't just drop the stream
+            print(f"[chat_stream] failed: {exc}", flush=True)
+            if not parts:
+                yield _ndjson({"error": True})
+        finally:
+            reply = "".join(parts).strip()
+            if reply and store:
+                history.append({"role": "user", "content": req.message})
+                history.append({"role": "assistant", "content": reply})
+        yield _ndjson({"done": True})
+
+    return StreamingResponse(
+        gen(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.post("/voice")

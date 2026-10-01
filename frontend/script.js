@@ -323,46 +323,143 @@ async function processSendQueue() {
 }
 
 async function deliverReply(trimmed, typingBubble) {
+  const fallbackText =
+    currentLang === "hi"
+      ? "माफ़ कीजिए, अभी जवाब देने में दिक्कत आ रही है। कृपया थोड़ी देर बाद पुनः प्रयास करें।"
+      : "Sorry, I'm having trouble responding right now. Please try again in a moment.";
+
+  const render = (bubble, text) => {
+    if (window.marked && window.DOMPurify) {
+      bubble.innerHTML = window.DOMPurify.sanitize(window.marked.parse(text));
+    } else {
+      bubble.textContent = text;
+    }
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  };
+
+  let bubble = null;   // created on first streamed token
+  let fullText = "";
+  let extras = []; // follow-up messages (top item, link) sent as separate bubbles
+  // Reveal the reply at a steady, readable pace instead of dumping each network
+  // chunk the moment it arrives. Lower STREAM_CHARS_PER_SEC = slower typing.
+  const STREAM_CHARS_PER_SEC = 30;
+  let shown = 0;
+  let pacer = null;
+  let carry = 0;
+  const pacerTick = () => {
+    if (!bubble) return;
+    const backlog = fullText.length - shown;
+    if (backlog <= 0) return;
+    // steady pace, plus a gentle catch-up so a long reply never lags far behind
+    carry += STREAM_CHARS_PER_SEC * 0.04;
+    let step = Math.floor(carry);
+    carry -= step;
+    step += Math.floor(backlog / 200);
+    if (step < 1) return;
+    let next = Math.min(fullText.length, shown + step);
+    // finish the current word so text doesn't appear cut mid-word
+    while (next < fullText.length && !/\s/.test(fullText[next - 1]) && next - shown < step + 12) next++;
+    shown = next;
+    render(bubble, fullText.slice(0, shown));
+  };
+  const startPacer = () => { if (!pacer) pacer = setInterval(pacerTick, 40); };
+  const stopPacer = () => { if (pacer) { clearInterval(pacer); pacer = null; } };
+  const drainPacer = () => new Promise((resolve) => {
+    if (!bubble) return resolve();
+    startPacer();
+    const wait = setInterval(() => {
+      if (shown >= fullText.length) { clearInterval(wait); stopPacer(); resolve(); }
+    }, 40);
+  });
+
   try {
-    const resp = await fetch(`${API_BASE}/chat`, {
+    const resp = await fetch(`${API_BASE}/chat/stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: trimmed,
-        session_id: sessionId,
-        lang: currentLang,
-      }),
+      body: JSON.stringify({ message: trimmed, session_id: sessionId, lang: currentLang }),
     });
+    if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
 
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    let streamError = false;
 
-    sessionId = data.session_id;
-    localStorage.setItem("upicon_session_id", sessionId);
+    const handleLine = (line) => {
+      if (!line.trim()) return;
+      let evt;
+      try { evt = JSON.parse(line); } catch { return; }
 
-    resolveTypingBubble(typingBubble, data.reply);
-    lastBotReply = data.reply;
+      if (evt.session_id) {
+        sessionId = evt.session_id;
+        localStorage.setItem("upicon_session_id", sessionId);
+      }
+      if (evt.error) streamError = true;
+      if (evt.new_message) { extras.push(""); return; }
+      if (evt.delta && extras.length) { extras[extras.length - 1] += evt.delta; return; }
+      if (evt.delta) {
+        fullText += evt.delta;
+        if (!bubble) {
+          bubble = document.createElement("div");
+          bubble.className = "msg bot";
+          typingBubble.replaceWith(bubble); // swap dots -> live bubble, same spot
+        }
+        startPacer();
+      }
+    };
 
-    // If a read-aloud session was already active (playing or paused) when
-    // this new reply arrived, jump straight to reading it instead of the
-    // old message - otherwise leave it silent until the speaker is clicked.
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop(); // keep any partial line for the next chunk
+      lines.forEach(handleLine);
+    }
+    if (buf) handleLine(buf);
+
+    if (!fullText) throw new Error(streamError ? "stream error" : "empty reply");
+
+    await drainPacer(); // let the typing finish at its steady pace
+    render(bubble, fullText); // final render with the complete text
+    messageLog.push({ role: "bot", text: fullText });
+    sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+    lastBotReply = fullText;
+    // Follow-up messages (top item, then link): each in its own bubble,
+    // shown after a short "typing" pause so they read as separate messages.
+    for (const extra of extras) {
+      const extraText = extra.trim();
+      if (!extraText) continue;
+      const typing = addTypingIndicator();
+      await new Promise((r) => setTimeout(r, 700));
+      const extraBubble = document.createElement("div");
+      extraBubble.className = "msg bot";
+      typing.replaceWith(extraBubble);
+      render(extraBubble, extraText);
+      messageLog.push({ role: "bot", text: extraText });
+      sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+    }
+
     if (speechState === "speaking") {
-      speakText(data.reply);
+      speakText(fullText);
     } else if (speechState === "paused") {
-      // Paused, then a new reply arrived: drop the old paused position so the
-      // next speaker click reads the NEW reply from the start.
       speechChunks = [];
       speechChunkIndex = 0;
       speechState = "idle";
       updateSpeakerUI();
     }
   } catch (err) {
-    const fallback =
-      currentLang === "hi"
-        ? "माफ़ कीजिए, अभी जवाब देने में दिक्कत आ रही है। कृपया थोड़ी देर बाद पुनः प्रयास करें।"
-        : "Sorry, I'm having trouble responding right now. Please try again in a moment.";
-    resolveTypingBubble(typingBubble, fallback);
     console.error(err);
+    if (bubble && fullText) {
+      // Stream broke midway: keep what arrived instead of wiping it.
+      stopPacer();
+      render(bubble, fullText);
+      messageLog.push({ role: "bot", text: fullText });
+      sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+      lastBotReply = fullText;
+    } else {
+      resolveTypingBubble(typingBubble, fallbackText);
+    }
   }
 }
 
@@ -407,6 +504,9 @@ if (SpeechRecognition) {
 
 function startListening() {
   if (!recognizer || isListening) return;
+  // Stop the bot talking the moment the user taps the mic - otherwise
+  // the recognizer would also pick up the bot's own voice.
+  if (hasSpeechSynthesis && speechState !== "idle") stopSpeech();
   recognizer.lang = currentLang === "hi" ? "hi-IN" : "en-IN";
   isListening = true;
   micBtn.classList.add("listening");

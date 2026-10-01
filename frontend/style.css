@@ -440,3 +440,696 @@ html,body{
   }
   #launcher{ left:16px; bottom:16px; }
 }
+
+/* =====================================================================
+   Soft "floating dock" button style
+   - white rounded dock with soft shadow (composer)
+   - thin line icons, no heavy borders
+   - round glowing action button (send), like a floating action button
+   - white pill chips with soft shadow instead of outlines
+   ===================================================================== */
+
+/* Composer becomes a floating white dock */
+.composer{
+  margin:0 12px 12px;
+  padding:6px 8px;
+  gap:4px;
+  border:none;
+  border-radius:999px;
+  background:var(--white);
+  box-shadow: 0 12px 28px -10px rgba(14,46,47,0.30), 0 2px 6px rgba(14,46,47,0.08);
+}
+
+/* Input sits flat inside the dock */
+#textInput{
+  border:none;
+  background:transparent;
+  padding:10px 8px;
+  border-radius:0;
+}
+#textInput:focus{ border:none; box-shadow:none; }
+
+/* Mic + speaker: thin line icons, no border or fill until touched */
+.icon-btn{
+  width:38px; height:38px;
+  border:none;
+  background:transparent;
+  color:var(--navy-700);
+}
+.icon-btn svg{ stroke-width:1.5; }
+.icon-btn:hover{ background:rgba(47,175,175,0.12); transform:scale(1.06); }
+.icon-btn.active{ background:var(--marigold-500); color:var(--white); box-shadow:0 6px 14px -5px rgba(218,127,40,0.7); }
+.icon-btn[data-state="speaking"],
+.icon-btn[data-state="paused"]{ background:var(--navy-800); color:var(--white); box-shadow:0 6px 14px -5px rgba(14,46,47,0.6); }
+
+/* Send: round floating action button with a soft glow */
+.send-btn{
+  width:42px; height:42px;
+  color:var(--white);
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+  box-shadow:0 10px 20px -6px rgba(218,127,40,0.75);
+}
+.send-btn svg{ stroke-width:1.8; }
+.send-btn:hover{ transform:translateY(-1px) scale(1.06); box-shadow:0 14px 24px -6px rgba(218,127,40,0.8); }
+
+/* Suggestion chips: white pills lifted by a soft shadow */
+.chip{
+  border:none;
+  padding:8px 15px;
+  box-shadow:0 6px 14px -8px rgba(14,46,47,0.35), 0 1px 3px rgba(14,46,47,0.08);
+}
+.chip:hover{ background:var(--white); box-shadow:0 10px 18px -8px rgba(14,46,47,0.4); }
+
+/* Header controls: thinner icon, softer pill */
+#closeBtn svg{ stroke-width:1.6; }
+.lang-toggle{ background:rgba(255,255,255,0.14); }
+
+/* =====================================================================
+   Round 2 - richer button styling
+   ===================================================================== */
+
+/* Fix: markdown replies had huge gaps between list items because the bubble
+   kept pre-wrap whitespace on top of already-rendered HTML. */
+.msg.bot{ white-space:normal; }
+.msg.bot li > p{ margin:0; }
+.msg.bot ul ul, .msg.bot ol ol{ margin:2px 0; }
+
+/* ---- Suggestion chips: one scrollable row, each with a line icon ---- */
+.suggestions{
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  padding:2px 14px 14px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.suggestions::-webkit-scrollbar{ display:none; }
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+  white-space:nowrap;
+  color:var(--navy-800);
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .15s ease;
+}
+.chip::before{
+  content:"";
+  width:14px; height:14px;
+  background:var(--marigold-500);
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+  -webkit-mask-size:contain; mask-size:contain;
+  transition: background .18s ease;
+}
+.chip[data-chip="initiatives"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h11l-2 4 2 4H5'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h11l-2 4 2 4H5'/%3E%3C/svg%3E"); }
+.chip[data-chip="careers"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); }
+.chip[data-chip="schemes"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6z'/%3E%3Cpath d='M15 3v4h4'/%3E%3Cpath d='M9 12h7'/%3E%3Cpath d='M9 16h7'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6z'/%3E%3Cpath d='M15 3v4h4'/%3E%3Cpath d='M9 12h7'/%3E%3Cpath d='M9 16h7'/%3E%3C/svg%3E"); }
+.chip[data-chip="spotlight"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); }
+.chip:hover{
+  background:linear-gradient(135deg, var(--navy-700), var(--navy-950));
+  color:var(--white);
+  border-color:transparent;
+  box-shadow:0 10px 18px -8px rgba(14,46,47,0.55);
+}
+.chip:hover::before{ background:var(--marigold-400); }
+.chip:active{ transform:scale(.95); }
+
+/* ---- Dock: warm glow ring while typing ---- */
+.composer{ transition: box-shadow .2s ease; }
+.composer:focus-within{
+  box-shadow: 0 14px 30px -10px rgba(14,46,47,0.35), 0 0 0 2px rgba(218,127,40,0.40);
+}
+
+/* ---- Mic + speaker: soft tinted circles ---- */
+.icon-btn{ background:rgba(47,175,175,0.10); }
+.icon-btn:hover{ background:rgba(47,175,175,0.22); }
+.icon-btn:active{ transform:scale(.9); }
+.icon-btn.listening{ background:var(--marigold-500); color:var(--white); }
+
+/* ---- Send: dim while the box is empty, vivid once there is text ---- */
+.send-btn{ transition: transform .15s ease, box-shadow .2s ease, filter .2s ease, opacity .2s ease; }
+.send-btn svg{ transition: transform .18s ease; }
+.send-btn:hover svg{ transform:translateX(2px); }
+#textInput:placeholder-shown ~ .send-btn{
+  filter:saturate(.55);
+  opacity:.8;
+  box-shadow:0 6px 12px -6px rgba(218,127,40,0.45);
+}
+
+/* ---- Header controls ---- */
+.lang-pill{ box-shadow:0 3px 8px -2px rgba(0,0,0,0.35); }
+.lang-btn{ transition: color .2s ease; }
+#closeBtn{ transition: background .15s ease, transform .25s ease; }
+#closeBtn:hover{ transform:rotate(90deg); }
+
+/* ---- Launcher: slow breathing glow ---- */
+@keyframes launcher-glow{
+  0%,100%{ box-shadow:0 14px 30px -10px rgba(14,46,47,0.55), 0 0 0 3px var(--marigold-500), 0 0 0 3px rgba(218,127,40,0.0); }
+  50%{ box-shadow:0 14px 30px -10px rgba(14,46,47,0.55), 0 0 0 3px var(--marigold-500), 0 0 0 10px rgba(218,127,40,0.18); }
+}
+#launcher{ animation: launcher-glow 3s ease-in-out infinite; }
+#launcher:hover{ animation:none; }
+
+/* =====================================================================
+   Round 3 - compact dock + fully responsive (never outside the chat box)
+   ===================================================================== */
+
+/* Shorter message box (input dock) */
+.composer{ margin:0 10px 10px; padding:3px 6px; gap:2px; min-width:0; max-width:100%; }
+#textInput{ flex:1 1 0; min-width:0; width:100%; padding:8px 6px; }
+.icon-btn{ width:34px; height:34px; flex:0 0 auto; }
+.icon-btn svg{ width:19px; height:19px; }
+.send-btn{ width:38px; height:38px; flex:0 0 auto; }
+
+/* Nothing may be wider than the chat panel */
+.suggestions{ min-width:0; max-width:100%; }
+.header-id{ min-width:0; flex:1 1 auto; }
+.header-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.header-actions{ flex:0 0 auto; }
+.msg{ max-width:88%; overflow-wrap:anywhere; }
+.msg.bot img{ max-width:100%; height:auto; }
+.msg.bot table, .msg.bot pre{ display:block; max-width:100%; overflow-x:auto; }
+
+/* Panel always fits the screen: width, height (dynamic viewport), notches */
+#panel{
+  width:min(380px, calc(100vw - 24px));
+  height:min(620px, calc(100vh - 140px));
+  height:min(620px, calc(100dvh - 140px));
+  container-type:inline-size;
+  container-name:upicon-panel;
+}
+@media (max-width:480px){
+  #panel{ left:12px; right:12px; width:auto; bottom:88px; }
+}
+@media (max-height:560px){
+  #panel{ bottom:12px; height:calc(100vh - 24px); height:calc(100dvh - 24px); }
+}
+
+/* Buttons shrink to fit when the panel itself is narrow */
+@container upicon-panel (max-width:340px){
+  .icon-btn{ width:30px; height:30px; }
+  .icon-btn svg{ width:17px; height:17px; }
+  .send-btn{ width:34px; height:34px; }
+  .composer{ margin:0 8px 8px; }
+  #textInput{ font-size:13px; }
+  .chip{ font-size:11.5px; padding:7px 11px; }
+  .suggestions{ padding-left:10px; padding-right:10px; }
+  .lang-toggle{ width:70px; }
+  .lang-pill{ width:32px; }
+  .lang-toggle[data-active="hi"] .lang-pill{ transform:translateX(32px); }
+  .header-title{ font-size:14px; }
+  .panel-header{ padding:12px 10px 12px 12px; }
+}
+
+/* =====================================================================
+   Round 4 - chat opens FROM the launcher's spot (same corner, grows out
+   of the icon) instead of sitting above it. The launcher hides while the
+   chat is open, so the panel takes over exactly that position.
+   ===================================================================== */
+#panel{
+  bottom:24px;
+  height:min(620px, calc(100vh - 48px));
+  height:min(620px, calc(100dvh - 48px));
+  /* launcher centre: 32px in from the left edge, 32px up from the bottom */
+  transform-origin:32px calc(100% - 32px);
+  transition: opacity .22s ease, transform .3s cubic-bezier(.2,.8,.2,1);
+}
+#panel.hidden{ opacity:0; transform:scale(.12); pointer-events:none; }
+@media (max-width:480px){
+  #panel{ bottom:24px; transform-origin:44px calc(100% - 32px); }
+}
+@media (max-width:420px){
+  #panel{ bottom:16px; height:min(78vh, 620px); height:min(78dvh, 620px); transform-origin:36px calc(100% - 32px); }
+}
+@media (max-height:560px){
+  #panel{ bottom:12px; height:calc(100vh - 24px); height:calc(100dvh - 24px); transform-origin:32px calc(100% - 44px); }
+}
+
+/* Round 5 - shorter chat window (change 520px to taste) */
+#panel{
+  height:min(520px, calc(100vh - 48px));
+  height:min(520px, calc(100dvh - 48px));
+}
+@media (max-width:420px){
+  #panel{ height:min(68vh, 520px); height:min(68dvh, 520px); }
+}
+@media (max-height:560px){
+  #panel{ height:calc(100vh - 24px); height:calc(100dvh - 24px); }
+}
+
+/* =====================================================================
+   Round 6 - chips become ONE attached tab bar (icon over label).
+   Four equal segments that share the row width, so they can never run
+   outside the chat window, on any screen size.
+   ===================================================================== */
+.suggestions{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:0;
+  margin:0 10px 8px;
+  padding:0;
+  overflow:hidden;
+  min-width:0;
+  background:var(--white);
+  border-radius:16px;
+  box-shadow:0 10px 22px -12px rgba(14,46,47,0.35), 0 1px 3px rgba(14,46,47,0.08);
+}
+.chip{
+  flex:1 1 0;
+  min-width:0;
+  flex-direction:column;
+  justify-content:center;
+  gap:3px;
+  padding:8px 2px 7px;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  font-size:11.5px;
+  font-weight:600;
+  line-height:1.1;
+  color:var(--navy-800);
+  overflow:hidden;
+}
+.chip + .chip{ box-shadow:inset 1px 0 0 var(--line); }
+.chip::before{ width:18px; height:18px; }
+.chip:hover{
+  background:rgba(47,175,175,0.12);
+  color:var(--navy-950);
+  transform:none;
+  box-shadow:inset 1px 0 0 var(--line);
+}
+.chip:first-child:hover{ box-shadow:none; }
+.chip:hover::before{ background:var(--marigold-500); }
+.chip:active{ background:rgba(218,127,40,0.18); transform:none; }
+@container upicon-panel (max-width:340px){
+  .chip{ font-size:10.5px; padding:7px 1px 6px; }
+  .chip::before{ width:16px; height:16px; }
+  .suggestions{ margin:0 8px 8px; padding:0; }
+}
+
+/* =====================================================================
+   Round 7 - icon-only round buttons. Each has its own icon + accent
+   colour; hovering (or keyboard-focusing) fills it with that colour and
+   pops a small name tag above it. Four fixed-size buttons centred in the
+   row, so they can never run outside the chat window.
+   ===================================================================== */
+.suggestions{
+  justify-content:center;
+  gap:14px;
+  margin:0 10px 10px;
+  padding:4px 0 0;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  border-radius:0;
+}
+.suggestions .chip{
+  --accent:var(--teal-500);
+  position:relative;
+  flex:0 0 auto;
+  width:42px; height:42px;
+  padding:0;
+  border-radius:50%;
+  border:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--white);
+  box-shadow:0 8px 16px -8px rgba(14,46,47,0.40), 0 1px 3px rgba(14,46,47,0.10);
+  overflow:visible;
+  font-size:0; color:transparent;            /* label text hidden - icon only */
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.suggestions .chip::before{
+  width:20px; height:20px;
+  background:var(--accent);
+  transition: background .18s ease, transform .18s ease;
+}
+.suggestions .chip[data-chip="initiatives"]{ --accent:#2FAFAF; }
+.suggestions .chip[data-chip="initiatives"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 21h4'/%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 21h4'/%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'/%3E%3C/svg%3E"); }
+.suggestions .chip[data-chip="careers"]{ --accent:#DA7F28; }
+.suggestions .chip[data-chip="careers"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); }
+.suggestions .chip[data-chip="schemes"]{ --accent:#3F8F6F; }
+.suggestions .chip[data-chip="schemes"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10l9-6 9 6'/%3E%3Cpath d='M5 10v8'/%3E%3Cpath d='M9 10v8'/%3E%3Cpath d='M15 10v8'/%3E%3Cpath d='M19 10v8'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10l9-6 9 6'/%3E%3Cpath d='M5 10v8'/%3E%3Cpath d='M9 10v8'/%3E%3Cpath d='M15 10v8'/%3E%3Cpath d='M19 10v8'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); }
+.suggestions .chip[data-chip="spotlight"]{ --accent:#E0A422; }
+.suggestions .chip[data-chip="spotlight"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); }
+
+/* name tag */
+.suggestions .chip::after{
+  content:attr(data-label);
+  position:absolute;
+  bottom:calc(100% + 9px);
+  left:50%;
+  transform:translateX(-50%) translateY(4px);
+  background:var(--navy-950);
+  color:var(--white);
+  font-family:var(--font-body);
+  font-size:11.5px; font-weight:600; line-height:1;
+  padding:6px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  box-shadow:0 8px 16px -8px rgba(14,46,47,0.55);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.suggestions .chip:hover,
+.suggestions .chip:focus-visible{
+  background:var(--accent);
+  transform:translateY(-3px);
+  box-shadow:0 14px 22px -10px var(--accent), 0 1px 3px rgba(14,46,47,0.12);
+}
+.suggestions .chip:hover::before,
+.suggestions .chip:focus-visible::before{ background:var(--white); transform:scale(1.08); }
+.suggestions .chip:hover::after,
+.suggestions .chip:focus-visible::after{ opacity:1; transform:translateX(-50%) translateY(0); }
+.suggestions .chip:active{ transform:translateY(0) scale(.94); background:var(--accent); }
+.suggestions .chip:focus-visible{ outline:2px solid var(--marigold-400); outline-offset:2px; }
+@container upicon-panel (max-width:340px){
+  .suggestions{ gap:10px; }
+  .suggestions .chip{ width:38px; height:38px; }
+  .suggestions .chip::before{ width:18px; height:18px; }
+}
+
+/* =====================================================================
+   Round 8 - one cohesive footer.
+   White "tray" at the bottom: a 4-column grid of soft tinted icon tiles
+   (always exactly the panel width - they can't overflow), then a clean
+   input row: round mic, filled input field, round speaker, round send.
+   Send is navy while the box is empty and turns marigold once you type.
+   ===================================================================== */
+
+/* ---- quick-action tray ---- */
+.suggestions{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+  margin:0;
+  padding:9px 12px 7px;
+  background:var(--white);
+  border-top:1px solid var(--line);
+  box-shadow:0 -12px 24px -20px rgba(14,46,47,0.45);
+  border-radius:0;
+  overflow:visible;
+  position:relative;
+  z-index:2;
+}
+.suggestions .chip{
+  width:auto; height:34px;
+  border-radius:12px;
+  background:var(--accent-soft, rgba(47,175,175,0.14));
+  box-shadow:none;
+}
+.suggestions .chip::before{ width:19px; height:19px; }
+.suggestions .chip[data-chip="initiatives"]{ --accent-soft:rgba(47,175,175,0.14); }
+.suggestions .chip[data-chip="careers"]{ --accent-soft:rgba(218,127,40,0.14); }
+.suggestions .chip[data-chip="schemes"]{ --accent-soft:rgba(63,143,111,0.14); }
+.suggestions .chip[data-chip="spotlight"]{ --accent-soft:rgba(224,164,34,0.18); }
+.suggestions .chip:hover,
+.suggestions .chip:focus-visible{
+  background:var(--accent);
+  transform:translateY(-2px);
+  box-shadow:0 10px 16px -10px var(--accent);
+}
+.suggestions .chip:active{ transform:scale(.95); background:var(--accent); }
+
+/* ---- input row ---- */
+.composer{
+  margin:0;
+  padding:3px 12px 11px;
+  gap:8px;
+  background:var(--white);
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+}
+.composer:focus-within{ box-shadow:none; }
+#textInput{
+  height:38px;
+  padding:0 15px;
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  border-radius:999px;
+}
+#textInput:focus{
+  background:var(--white);
+  border-color:var(--marigold-500);
+  box-shadow:0 0 0 3px rgba(218,127,40,0.16);
+}
+.icon-btn{
+  width:38px; height:38px;
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  color:var(--navy-700);
+}
+.icon-btn:hover{ background:rgba(47,175,175,0.14); border-color:var(--teal-400); }
+.icon-btn.listening{ background:var(--marigold-500); border-color:var(--marigold-500); color:var(--white); }
+.icon-btn[data-state="speaking"],
+.icon-btn[data-state="paused"]{ background:var(--navy-800); border-color:var(--navy-800); color:var(--white); }
+.send-btn{
+  width:38px; height:38px;
+  color:var(--white);
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+  box-shadow:0 8px 16px -8px rgba(218,127,40,0.8);
+  transition: background .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+/* empty box: calm navy send; typing: warm marigold */
+#textInput:placeholder-shown ~ .send-btn{
+  background:linear-gradient(145deg, var(--navy-700), var(--navy-950));
+  box-shadow:0 6px 12px -8px rgba(14,46,47,0.7);
+  filter:none;
+  opacity:1;
+}
+
+@container upicon-panel (max-width:340px){
+  .suggestions{ gap:6px; padding:8px 10px 6px; }
+  .suggestions .chip{ height:32px; border-radius:11px; }
+  .composer{ padding:3px 10px 10px; gap:6px; }
+  #textInput{ height:36px; padding:0 12px; font-size:13px; }
+  .icon-btn, .send-btn{ width:36px; height:36px; }
+}
+
+/* =====================================================================
+   Round 9 - fully rounded footer + soft teal background.
+   No squarish shapes: the icon tiles are now pills, the input is a pill,
+   mic/speaker/send are circles. The whole footer sits on one light-teal
+   background so it reads as a single block under the chat.
+   ===================================================================== */
+.suggestions,
+.composer{ background:#E3F1EF; }
+.suggestions{
+  border-top:1px solid rgba(47,175,175,0.28);
+  box-shadow:none;
+}
+.suggestions .chip{
+  border-radius:999px;
+  background:var(--white);
+  box-shadow:0 5px 12px -7px rgba(14,46,47,0.40), 0 1px 2px rgba(14,46,47,0.08);
+}
+.suggestions .chip:hover,
+.suggestions .chip:focus-visible{ background:var(--accent); }
+.suggestions .chip:active{ background:var(--accent); }
+#textInput{
+  background:var(--white);
+  border-color:rgba(47,175,175,0.35);
+  border-radius:999px;
+}
+.icon-btn{
+  background:var(--white);
+  border-color:rgba(47,175,175,0.35);
+  border-radius:50%;
+}
+.icon-btn:hover{ background:#D2EBE8; border-color:var(--teal-400); }
+.send-btn{ border-radius:50%; }
+@container upicon-panel (max-width:340px){
+  .suggestions .chip{ border-radius:999px; }
+}
+
+/* Round 10 - slimmer footer (about 20px shorter) */
+.suggestions{ gap:7px; padding:6px 12px 5px; }
+.suggestions .chip{ height:28px; }
+.suggestions .chip::before{ width:17px; height:17px; }
+.composer{ padding:2px 12px 8px; gap:7px; }
+#textInput{ height:34px; padding:0 14px; }
+.icon-btn, .send-btn{ width:34px; height:34px; }
+.icon-btn svg{ width:18px; height:18px; }
+.send-btn svg{ width:16px; height:16px; }
+@container upicon-panel (max-width:340px){
+  .suggestions{ gap:6px; padding:5px 10px 4px; }
+  .suggestions .chip{ height:27px; }
+  .composer{ padding:2px 10px 7px; gap:6px; }
+  #textInput{ height:32px; padding:0 12px; }
+  .icon-btn, .send-btn{ width:32px; height:32px; }
+}
+
+/* Round 11 - footer background: warm marigold cream (was light teal) */
+.suggestions,
+.composer{ background:#FCEBD5; }
+.suggestions{ border-top:1px solid rgba(218,127,40,0.30); }
+#textInput,
+.icon-btn{ border-color:rgba(218,127,40,0.35); }
+.icon-btn:hover{ background:#FBE0BF; border-color:var(--marigold-400); }
+
+/* =====================================================================
+   Round 12 - rounded top edge + connected icon capsule.
+   - the footer's top corners are rounded (like a bottom sheet)
+   - the 4 icons sit inside ONE white capsule, separated by thin short
+     dividers; hover fills the touched icon with its own rounded pill,
+     so the joints never look square
+   ===================================================================== */
+.suggestions{
+  --pt:6px; --pr:12px; --pb:5px;
+  gap:0;
+  padding:var(--pt) var(--pr) var(--pb);
+  border-top:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -1px 0 rgba(218,127,40,0.30), 0 -12px 22px -16px rgba(14,46,47,0.35);
+}
+.suggestions::before{
+  content:"";
+  position:absolute;
+  inset:var(--pt) var(--pr) var(--pb);
+  background:var(--white);
+  border-radius:999px;
+  box-shadow:0 5px 12px -8px rgba(14,46,47,0.40), 0 1px 2px rgba(14,46,47,0.08);
+  z-index:0;
+}
+.suggestions::after{
+  content:"";
+  position:absolute;
+  inset:calc(var(--pt) + 6px) var(--pr) calc(var(--pb) + 6px);
+  pointer-events:none;
+  z-index:1;
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(218,127,40,0.30) calc(25% - 0.5px), rgba(218,127,40,0.30) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(218,127,40,0.30) calc(50% - 0.5px), rgba(218,127,40,0.30) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(218,127,40,0.30) calc(75% - 0.5px), rgba(218,127,40,0.30) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+.suggestions .chip{
+  z-index:2;
+  height:28px;
+  margin:3px 4px;
+  background:transparent;
+  box-shadow:none;
+}
+.suggestions .chip:hover,
+.suggestions .chip:focus-visible{
+  background:var(--accent);
+  transform:none;
+  box-shadow:0 6px 12px -8px var(--accent);
+}
+.suggestions .chip:active{ background:var(--accent); transform:scale(.95); }
+@container upicon-panel (max-width:340px){
+  .suggestions{ --pt:5px; --pr:10px; --pb:4px; }
+  .suggestions .chip{ height:27px; margin:2px 3px; }
+}
+
+/* Round 13 - icon strip is full-bleed: no outer padding or margins, the
+   four buttons fill the strip edge to edge (left, right, top, bottom). */
+.suggestions{
+  --pt:0px; --pr:0px; --pb:0px;
+  padding:0;
+  gap:0;
+  background:var(--white);
+}
+.suggestions::before{ display:none; }
+.suggestions::after{ inset:7px 0; }
+.suggestions .chip{
+  height:38px;
+  margin:0;
+  border-radius:999px;
+}
+@container upicon-panel (max-width:340px){
+  .suggestions .chip{ height:34px; margin:0; }
+  .suggestions::after{ inset:6px 0; }
+}
+
+/* Round 14 - on hover the WHOLE button area rises and fills with its colour
+   (a rounded-top tab that pops up out of the strip; the shadow below fills
+   the gap so the colour covers the entire area edge to edge). */
+.suggestions .chip{
+  border-radius:14px 14px 0 0;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.suggestions .chip:hover,
+.suggestions .chip:focus-visible{
+  background:var(--accent);
+  border-radius:14px 14px 0 0;
+  transform:translateY(-6px);
+  box-shadow:0 6px 0 var(--accent), 0 -8px 16px -10px var(--accent);
+}
+.suggestions .chip:active{
+  background:var(--accent);
+  transform:translateY(-3px);
+  box-shadow:0 3px 0 var(--accent);
+}
+@container upicon-panel (max-width:340px){
+  .suggestions .chip:hover,
+  .suggestions .chip:focus-visible{ transform:translateY(-5px); box-shadow:0 5px 0 var(--accent), 0 -8px 16px -10px var(--accent); }
+}
+
+/* Round 15 - one separate footer colour (soft lavender) shared by the
+   button strip AND the input row, so they read as a single block. */
+.suggestions,
+.composer{ background:#EAE6F7; }
+.suggestions{
+  box-shadow:0 -1px 0 rgba(108,92,170,0.25), 0 -12px 22px -16px rgba(14,46,47,0.35);
+}
+.suggestions::after{
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(108,92,170,0.28) calc(25% - 0.5px), rgba(108,92,170,0.28) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(108,92,170,0.28) calc(50% - 0.5px), rgba(108,92,170,0.28) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(108,92,170,0.28) calc(75% - 0.5px), rgba(108,92,170,0.28) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+#textInput,
+.icon-btn{ border-color:rgba(108,92,170,0.32); }
+.icon-btn:hover{ background:#DDD6F3; border-color:#9B8FD6; }
+
+/* Round 16 - footer in deep teal, echoing the header so the chat is
+   bookended dark / cream / dark. Icons use brighter tints of their colours
+   so they glow on the dark background; hover still fills the whole area
+   with the button's own colour. */
+.suggestions,
+.composer{ background:#14403F; }
+.suggestions{
+  box-shadow:0 -1px 0 rgba(255,255,255,0.10), 0 -12px 22px -16px rgba(14,46,47,0.55);
+}
+.suggestions::after{
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(255,255,255,0.18) calc(25% - 0.5px), rgba(255,255,255,0.18) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(255,255,255,0.18) calc(50% - 0.5px), rgba(255,255,255,0.18) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(255,255,255,0.18) calc(75% - 0.5px), rgba(255,255,255,0.18) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+.suggestions .chip[data-chip="initiatives"]{ --icon:#7FE3E3; }
+.suggestions .chip[data-chip="careers"]{ --icon:#F7AE68; }
+.suggestions .chip[data-chip="schemes"]{ --icon:#8FDDB6; }
+.suggestions .chip[data-chip="spotlight"]{ --icon:#F8D164; }
+.suggestions .chip::before{ background:var(--icon, var(--accent)); }
+#textInput,
+.icon-btn{ border-color:rgba(255,255,255,0.22); }
+.icon-btn:hover{ background:#D7F0EE; border-color:var(--teal-400); }
+.icon-btn[data-state="speaking"],
+.icon-btn[data-state="paused"]{ background:var(--teal-500); border-color:var(--teal-500); color:var(--white); }
+/* empty box: teal send (navy would vanish on the dark footer); typing: marigold */
+#textInput:placeholder-shown ~ .send-btn{
+  background:var(--marigold-400);
+  box-shadow:0 6px 12px -8px rgba(0,0,0,0.5);
+}
+
+/* Round 17 - header + footer in a slightly lighter teal (one step up from
+   the deep teal, still clearly teal so the white text and glowing icons
+   keep their contrast). */
+.panel-header{ background: linear-gradient(120deg, #1C5453, #2C807D); }
+.suggestions,
+.composer{ background:#25706D; }
+.suggestions{
+  box-shadow:0 -1px 0 rgba(255,255,255,0.14), 0 -12px 22px -16px rgba(14,46,47,0.45);
+}
+.icon-btn:hover{ background:#E1F4F2; }
+/* empty box: marigold send reads well on the mid-teal footer */
+#textInput:placeholder-shown ~ .send-btn{
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+}
+
+/* Header avatar plays the same startup video as the launcher */
+.header-avatar{ position:relative; overflow:hidden; }
+.avatar-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%; pointer-events:none; }

@@ -218,6 +218,9 @@
   color:var(--navy-950); font-family:var(--font-display); font-weight:700;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
+.upicon-header-avatar{ position:relative; overflow:hidden; }
+.upicon-avatar-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%; pointer-events:none; }
+.upicon-avatar-video[hidden]{ display:none !important; }
 .upicon-header-title{ margin:0; font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--white); }
 .upicon-header-sub{ margin:2px 0 0; font-size:12px; color:#C9D2E6; display:flex; align-items:center; gap:5px; }
 .upicon-header-sub::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--success); display:inline-block; }
@@ -333,6 +336,709 @@
   #upicon-panel{ right:12px; left:12px; bottom:88px; width:auto; height:min(70vh, 620px); }
   #upicon-launcher{ left:16px; bottom:16px; }
 }
+/* =====================================================================
+   Soft "floating dock" button style
+   - white rounded dock with soft shadow (composer)
+   - thin line icons, no heavy borders
+   - round glowing action button (send), like a floating action button
+   - white pill chips with soft shadow instead of outlines
+   ===================================================================== */
+
+/* Composer becomes a floating white dock */
+.upicon-composer{
+  margin:0 12px 12px;
+  padding:6px 8px;
+  gap:4px;
+  border:none;
+  border-radius:999px;
+  background:var(--white);
+  box-shadow: 0 12px 28px -10px rgba(14,46,47,0.30), 0 2px 6px rgba(14,46,47,0.08);
+}
+
+/* Input sits flat inside the dock */
+#upicon-textInput{
+  border:none;
+  background:transparent;
+  padding:10px 8px;
+  border-radius:0;
+}
+#upicon-textInput:focus{ border:none; box-shadow:none; }
+
+/* Mic + speaker: thin line icons, no border or fill until touched */
+.upicon-icon-btn{
+  width:38px; height:38px;
+  border:none;
+  background:transparent;
+  color:var(--navy-700);
+}
+.upicon-icon-btn svg{ stroke-width:1.5; }
+.upicon-icon-btn:hover{ background:rgba(47,175,175,0.12); transform:scale(1.06); }
+.upicon-icon-btn.active{ background:var(--marigold-500); color:var(--white); box-shadow:0 6px 14px -5px rgba(218,127,40,0.7); }
+.upicon-icon-btn[data-state="speaking"],
+.upicon-icon-btn[data-state="paused"]{ background:var(--navy-800); color:var(--white); box-shadow:0 6px 14px -5px rgba(14,46,47,0.6); }
+
+/* Send: round floating action button with a soft glow */
+.upicon-send-btn{
+  width:42px; height:42px;
+  color:var(--white);
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+  box-shadow:0 10px 20px -6px rgba(218,127,40,0.75);
+}
+.upicon-send-btn svg{ stroke-width:1.8; }
+.upicon-send-btn:hover{ transform:translateY(-1px) scale(1.06); box-shadow:0 14px 24px -6px rgba(218,127,40,0.8); }
+
+/* Suggestion chips: white pills lifted by a soft shadow */
+.upicon-chip{
+  border:none;
+  padding:8px 15px;
+  box-shadow:0 6px 14px -8px rgba(14,46,47,0.35), 0 1px 3px rgba(14,46,47,0.08);
+}
+.upicon-chip:hover{ background:var(--white); box-shadow:0 10px 18px -8px rgba(14,46,47,0.4); }
+
+/* Header controls: thinner icon, softer pill */
+#upicon-closeBtn svg{ stroke-width:1.6; }
+.upicon-lang-toggle{ background:rgba(255,255,255,0.14); }
+
+/* =====================================================================
+   Round 2 - richer button styling
+   ===================================================================== */
+
+/* Fix: markdown replies had huge gaps between list items because the bubble
+   kept pre-wrap whitespace on top of already-rendered HTML. */
+.upicon-msg.bot{ white-space:normal; }
+.upicon-msg.bot li > p{ margin:0; }
+.upicon-msg.bot ul ul, .upicon-msg.bot ol ol{ margin:2px 0; }
+
+/* ---- Suggestion chips: one scrollable row, each with a line icon ---- */
+.upicon-suggestions{
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  padding:2px 14px 14px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.upicon-suggestions::-webkit-scrollbar{ display:none; }
+.upicon-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+  white-space:nowrap;
+  color:var(--navy-800);
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .15s ease;
+}
+.upicon-chip::before{
+  content:"";
+  width:14px; height:14px;
+  background:var(--marigold-500);
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+  -webkit-mask-size:contain; mask-size:contain;
+  transition: background .18s ease;
+}
+.upicon-chip[data-chip="initiatives"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h11l-2 4 2 4H5'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h11l-2 4 2 4H5'/%3E%3C/svg%3E"); }
+.upicon-chip[data-chip="careers"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); }
+.upicon-chip[data-chip="schemes"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6z'/%3E%3Cpath d='M15 3v4h4'/%3E%3Cpath d='M9 12h7'/%3E%3Cpath d='M9 16h7'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6z'/%3E%3Cpath d='M15 3v4h4'/%3E%3Cpath d='M9 12h7'/%3E%3Cpath d='M9 16h7'/%3E%3C/svg%3E"); }
+.upicon-chip[data-chip="spotlight"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); }
+.upicon-chip:hover{
+  background:linear-gradient(135deg, var(--navy-700), var(--navy-950));
+  color:var(--white);
+  border-color:transparent;
+  box-shadow:0 10px 18px -8px rgba(14,46,47,0.55);
+}
+.upicon-chip:hover::before{ background:var(--marigold-400); }
+.upicon-chip:active{ transform:scale(.95); }
+
+/* ---- Dock: warm glow ring while typing ---- */
+.upicon-composer{ transition: box-shadow .2s ease; }
+.upicon-composer:focus-within{
+  box-shadow: 0 14px 30px -10px rgba(14,46,47,0.35), 0 0 0 2px rgba(218,127,40,0.40);
+}
+
+/* ---- Mic + speaker: soft tinted circles ---- */
+.upicon-icon-btn{ background:rgba(47,175,175,0.10); }
+.upicon-icon-btn:hover{ background:rgba(47,175,175,0.22); }
+.upicon-icon-btn:active{ transform:scale(.9); }
+.upicon-icon-btn.listening{ background:var(--marigold-500); color:var(--white); }
+
+/* ---- Send: dim while the box is empty, vivid once there is text ---- */
+.upicon-send-btn{ transition: transform .15s ease, box-shadow .2s ease, filter .2s ease, opacity .2s ease; }
+.upicon-send-btn svg{ transition: transform .18s ease; }
+.upicon-send-btn:hover svg{ transform:translateX(2px); }
+#upicon-textInput:placeholder-shown ~ .upicon-send-btn{
+  filter:saturate(.55);
+  opacity:.8;
+  box-shadow:0 6px 12px -6px rgba(218,127,40,0.45);
+}
+
+/* ---- Header controls ---- */
+.upicon-lang-pill{ box-shadow:0 3px 8px -2px rgba(0,0,0,0.35); }
+.upicon-lang-btn{ transition: color .2s ease; }
+#upicon-closeBtn{ transition: background .15s ease, transform .25s ease; }
+#upicon-closeBtn:hover{ transform:rotate(90deg); }
+
+/* ---- Launcher: slow breathing glow ---- */
+@keyframes upicon-launcher-glow{
+  0%,100%{ box-shadow:0 14px 30px -10px rgba(14,46,47,0.55), 0 0 0 3px var(--marigold-500), 0 0 0 3px rgba(218,127,40,0.0); }
+  50%{ box-shadow:0 14px 30px -10px rgba(14,46,47,0.55), 0 0 0 3px var(--marigold-500), 0 0 0 10px rgba(218,127,40,0.18); }
+}
+#upicon-launcher{ animation: upicon-launcher-glow 3s ease-in-out infinite; }
+#upicon-launcher:hover{ animation:none; }
+
+/* =====================================================================
+   Round 3 - compact dock + fully responsive (never outside the chat box)
+   ===================================================================== */
+
+/* Shorter message box (input dock) */
+.upicon-composer{ margin:0 10px 10px; padding:3px 6px; gap:2px; min-width:0; max-width:100%; }
+#upicon-textInput{ flex:1 1 0; min-width:0; width:100%; padding:8px 6px; }
+.upicon-icon-btn{ width:34px; height:34px; flex:0 0 auto; }
+.upicon-icon-btn svg{ width:19px; height:19px; }
+.upicon-send-btn{ width:38px; height:38px; flex:0 0 auto; }
+
+/* Nothing may be wider than the chat panel */
+.upicon-suggestions{ min-width:0; max-width:100%; }
+.upicon-header-id{ min-width:0; flex:1 1 auto; }
+.upicon-header-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.upicon-header-actions{ flex:0 0 auto; }
+.upicon-msg{ max-width:88%; overflow-wrap:anywhere; }
+.upicon-msg.bot img{ max-width:100%; height:auto; }
+.upicon-msg.bot table, .upicon-msg.bot pre{ display:block; max-width:100%; overflow-x:auto; }
+
+/* Panel always fits the screen: width, height (dynamic viewport), notches */
+#upicon-panel{
+  width:min(380px, calc(100vw - 24px));
+  height:min(620px, calc(100vh - 140px));
+  height:min(620px, calc(100dvh - 140px));
+  container-type:inline-size;
+  container-name:upicon-panel;
+}
+@media (max-width:480px){
+  #upicon-panel{ left:12px; right:12px; width:auto; bottom:88px; }
+}
+@media (max-height:560px){
+  #upicon-panel{ bottom:12px; height:calc(100vh - 24px); height:calc(100dvh - 24px); }
+}
+
+/* Buttons shrink to fit when the panel itself is narrow */
+@container upicon-panel (max-width:340px){
+  .upicon-icon-btn{ width:30px; height:30px; }
+  .upicon-icon-btn svg{ width:17px; height:17px; }
+  .upicon-send-btn{ width:34px; height:34px; }
+  .upicon-composer{ margin:0 8px 8px; }
+  #upicon-textInput{ font-size:13px; }
+  .upicon-chip{ font-size:11.5px; padding:7px 11px; }
+  .upicon-suggestions{ padding-left:10px; padding-right:10px; }
+  .upicon-lang-toggle{ width:70px; }
+  .upicon-lang-pill{ width:32px; }
+  .upicon-lang-toggle[data-active="hi"] .upicon-lang-pill{ transform:translateX(32px); }
+  .upicon-header-title{ font-size:14px; }
+  .upicon-panel-header{ padding:12px 10px 12px 12px; }
+}
+
+
+/* =====================================================================
+   Round 4 - chat opens FROM the launcher's spot (same corner, grows out
+   of the icon) instead of sitting above it. The launcher hides while the
+   chat is open, so the panel takes over exactly that position.
+   ===================================================================== */
+#upicon-panel{
+  bottom:24px;
+  height:min(620px, calc(100vh - 48px));
+  height:min(620px, calc(100dvh - 48px));
+  /* launcher centre: 32px in from the left edge, 32px up from the bottom */
+  transform-origin:32px calc(100% - 32px);
+  transition: opacity .22s ease, transform .3s cubic-bezier(.2,.8,.2,1);
+}
+#upicon-panel.hidden{ opacity:0; transform:scale(.12); pointer-events:none; }
+@media (max-width:480px){
+  #upicon-panel{ bottom:24px; transform-origin:44px calc(100% - 32px); }
+}
+@media (max-width:420px){
+  #upicon-panel{ bottom:16px; height:min(78vh, 620px); height:min(78dvh, 620px); transform-origin:36px calc(100% - 32px); }
+}
+@media (max-height:560px){
+  #upicon-panel{ bottom:12px; height:calc(100vh - 24px); height:calc(100dvh - 24px); transform-origin:32px calc(100% - 44px); }
+}
+
+
+/* Round 5 - shorter chat window (change 520px to taste) */
+#upicon-panel{
+  height:min(520px, calc(100vh - 48px));
+  height:min(520px, calc(100dvh - 48px));
+}
+@media (max-width:420px){
+  #upicon-panel{ height:min(68vh, 520px); height:min(68dvh, 520px); }
+}
+@media (max-height:560px){
+  #upicon-panel{ height:calc(100vh - 24px); height:calc(100dvh - 24px); }
+}
+
+
+/* =====================================================================
+   Round 6 - chips become ONE attached tab bar (icon over label).
+   Four equal segments that share the row width, so they can never run
+   outside the chat window, on any screen size.
+   ===================================================================== */
+.upicon-suggestions{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:0;
+  margin:0 10px 8px;
+  padding:0;
+  overflow:hidden;
+  min-width:0;
+  background:var(--white);
+  border-radius:16px;
+  box-shadow:0 10px 22px -12px rgba(14,46,47,0.35), 0 1px 3px rgba(14,46,47,0.08);
+}
+.upicon-chip{
+  flex:1 1 0;
+  min-width:0;
+  flex-direction:column;
+  justify-content:center;
+  gap:3px;
+  padding:8px 2px 7px;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  font-size:11.5px;
+  font-weight:600;
+  line-height:1.1;
+  color:var(--navy-800);
+  overflow:hidden;
+}
+.upicon-chip + .upicon-chip{ box-shadow:inset 1px 0 0 var(--line); }
+.upicon-chip::before{ width:18px; height:18px; }
+.upicon-chip:hover{
+  background:rgba(47,175,175,0.12);
+  color:var(--navy-950);
+  transform:none;
+  box-shadow:inset 1px 0 0 var(--line);
+}
+.upicon-chip:first-child:hover{ box-shadow:none; }
+.upicon-chip:hover::before{ background:var(--marigold-500); }
+.upicon-chip:active{ background:rgba(218,127,40,0.18); transform:none; }
+@container upicon-panel (max-width:340px){
+  .upicon-chip{ font-size:10.5px; padding:7px 1px 6px; }
+  .upicon-chip::before{ width:16px; height:16px; }
+  .upicon-suggestions{ margin:0 8px 8px; padding:0; }
+}
+
+
+/* =====================================================================
+   Round 7 - icon-only round buttons. Each has its own icon + accent
+   colour; hovering (or keyboard-focusing) fills it with that colour and
+   pops a small name tag above it. Four fixed-size buttons centred in the
+   row, so they can never run outside the chat window.
+   ===================================================================== */
+.upicon-suggestions{
+  justify-content:center;
+  gap:14px;
+  margin:0 10px 10px;
+  padding:4px 0 0;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  border-radius:0;
+}
+.upicon-suggestions .upicon-chip{
+  --accent:var(--teal-500);
+  position:relative;
+  flex:0 0 auto;
+  width:42px; height:42px;
+  padding:0;
+  border-radius:50%;
+  border:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--white);
+  box-shadow:0 8px 16px -8px rgba(14,46,47,0.40), 0 1px 3px rgba(14,46,47,0.10);
+  overflow:visible;
+  font-size:0; color:transparent;            /* label text hidden - icon only */
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.upicon-suggestions .upicon-chip::before{
+  width:20px; height:20px;
+  background:var(--accent);
+  transition: background .18s ease, transform .18s ease;
+}
+.upicon-suggestions .upicon-chip[data-chip="initiatives"]{ --accent:#2FAFAF; }
+.upicon-suggestions .upicon-chip[data-chip="initiatives"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 21h4'/%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 21h4'/%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'/%3E%3C/svg%3E"); }
+.upicon-suggestions .upicon-chip[data-chip="careers"]{ --accent:#DA7F28; }
+.upicon-suggestions .upicon-chip[data-chip="careers"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h18v12H3z'/%3E%3Cpath d='M9 8V5h6v3'/%3E%3Cpath d='M3 13h18'/%3E%3C/svg%3E"); }
+.upicon-suggestions .upicon-chip[data-chip="schemes"]{ --accent:#3F8F6F; }
+.upicon-suggestions .upicon-chip[data-chip="schemes"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10l9-6 9 6'/%3E%3Cpath d='M5 10v8'/%3E%3Cpath d='M9 10v8'/%3E%3Cpath d='M15 10v8'/%3E%3Cpath d='M19 10v8'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10l9-6 9 6'/%3E%3Cpath d='M5 10v8'/%3E%3Cpath d='M9 10v8'/%3E%3Cpath d='M15 10v8'/%3E%3Cpath d='M19 10v8'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); }
+.upicon-suggestions .upicon-chip[data-chip="spotlight"]{ --accent:#E0A422; }
+.upicon-suggestions .upicon-chip[data-chip="spotlight"]::before{ -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.6 5.6 6.1.8-4.5 4.2 1.1 6-5.3-3-5.3 3 1.1-6-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E"); }
+
+/* name tag */
+.upicon-suggestions .upicon-chip::after{
+  content:attr(data-label);
+  position:absolute;
+  bottom:calc(100% + 9px);
+  left:50%;
+  transform:translateX(-50%) translateY(4px);
+  background:var(--navy-950);
+  color:var(--white);
+  font-family:var(--font-body);
+  font-size:11.5px; font-weight:600; line-height:1;
+  padding:6px 10px;
+  border-radius:8px;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  box-shadow:0 8px 16px -8px rgba(14,46,47,0.55);
+  transition: opacity .16s ease, transform .16s ease;
+}
+.upicon-suggestions .upicon-chip:hover,
+.upicon-suggestions .upicon-chip:focus-visible{
+  background:var(--accent);
+  transform:translateY(-3px);
+  box-shadow:0 14px 22px -10px var(--accent), 0 1px 3px rgba(14,46,47,0.12);
+}
+.upicon-suggestions .upicon-chip:hover::before,
+.upicon-suggestions .upicon-chip:focus-visible::before{ background:var(--white); transform:scale(1.08); }
+.upicon-suggestions .upicon-chip:hover::after,
+.upicon-suggestions .upicon-chip:focus-visible::after{ opacity:1; transform:translateX(-50%) translateY(0); }
+.upicon-suggestions .upicon-chip:active{ transform:translateY(0) scale(.94); background:var(--accent); }
+.upicon-suggestions .upicon-chip:focus-visible{ outline:2px solid var(--marigold-400); outline-offset:2px; }
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions{ gap:10px; }
+  .upicon-suggestions .upicon-chip{ width:38px; height:38px; }
+  .upicon-suggestions .upicon-chip::before{ width:18px; height:18px; }
+}
+
+
+/* =====================================================================
+   Round 8 - one cohesive footer.
+   White "tray" at the bottom: a 4-column grid of soft tinted icon tiles
+   (always exactly the panel width - they can't overflow), then a clean
+   input row: round mic, filled input field, round speaker, round send.
+   Send is navy while the box is empty and turns marigold once you type.
+   ===================================================================== */
+
+/* ---- quick-action tray ---- */
+.upicon-suggestions{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+  margin:0;
+  padding:9px 12px 7px;
+  background:var(--white);
+  border-top:1px solid var(--line);
+  box-shadow:0 -12px 24px -20px rgba(14,46,47,0.45);
+  border-radius:0;
+  overflow:visible;
+  position:relative;
+  z-index:2;
+}
+.upicon-suggestions .upicon-chip{
+  width:auto; height:34px;
+  border-radius:12px;
+  background:var(--accent-soft, rgba(47,175,175,0.14));
+  box-shadow:none;
+}
+.upicon-suggestions .upicon-chip::before{ width:19px; height:19px; }
+.upicon-suggestions .upicon-chip[data-chip="initiatives"]{ --accent-soft:rgba(47,175,175,0.14); }
+.upicon-suggestions .upicon-chip[data-chip="careers"]{ --accent-soft:rgba(218,127,40,0.14); }
+.upicon-suggestions .upicon-chip[data-chip="schemes"]{ --accent-soft:rgba(63,143,111,0.14); }
+.upicon-suggestions .upicon-chip[data-chip="spotlight"]{ --accent-soft:rgba(224,164,34,0.18); }
+.upicon-suggestions .upicon-chip:hover,
+.upicon-suggestions .upicon-chip:focus-visible{
+  background:var(--accent);
+  transform:translateY(-2px);
+  box-shadow:0 10px 16px -10px var(--accent);
+}
+.upicon-suggestions .upicon-chip:active{ transform:scale(.95); background:var(--accent); }
+
+/* ---- input row ---- */
+.upicon-composer{
+  margin:0;
+  padding:3px 12px 11px;
+  gap:8px;
+  background:var(--white);
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+}
+.upicon-composer:focus-within{ box-shadow:none; }
+#upicon-textInput{
+  height:38px;
+  padding:0 15px;
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  border-radius:999px;
+}
+#upicon-textInput:focus{
+  background:var(--white);
+  border-color:var(--marigold-500);
+  box-shadow:0 0 0 3px rgba(218,127,40,0.16);
+}
+.upicon-icon-btn{
+  width:38px; height:38px;
+  background:var(--paper);
+  border:1.5px solid var(--line);
+  color:var(--navy-700);
+}
+.upicon-icon-btn:hover{ background:rgba(47,175,175,0.14); border-color:var(--teal-400); }
+.upicon-icon-btn.listening{ background:var(--marigold-500); border-color:var(--marigold-500); color:var(--white); }
+.upicon-icon-btn[data-state="speaking"],
+.upicon-icon-btn[data-state="paused"]{ background:var(--navy-800); border-color:var(--navy-800); color:var(--white); }
+.upicon-send-btn{
+  width:38px; height:38px;
+  color:var(--white);
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+  box-shadow:0 8px 16px -8px rgba(218,127,40,0.8);
+  transition: background .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+/* empty box: calm navy send; typing: warm marigold */
+#upicon-textInput:placeholder-shown ~ .upicon-send-btn{
+  background:linear-gradient(145deg, var(--navy-700), var(--navy-950));
+  box-shadow:0 6px 12px -8px rgba(14,46,47,0.7);
+  filter:none;
+  opacity:1;
+}
+
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions{ gap:6px; padding:8px 10px 6px; }
+  .upicon-suggestions .upicon-chip{ height:32px; border-radius:11px; }
+  .upicon-composer{ padding:3px 10px 10px; gap:6px; }
+  #upicon-textInput{ height:36px; padding:0 12px; font-size:13px; }
+  .upicon-icon-btn, .upicon-send-btn{ width:36px; height:36px; }
+}
+
+
+/* =====================================================================
+   Round 9 - fully rounded footer + soft teal background.
+   No squarish shapes: the icon tiles are now pills, the input is a pill,
+   mic/speaker/send are circles. The whole footer sits on one light-teal
+   background so it reads as a single block under the chat.
+   ===================================================================== */
+.upicon-suggestions,
+.upicon-composer{ background:#E3F1EF; }
+.upicon-suggestions{
+  border-top:1px solid rgba(47,175,175,0.28);
+  box-shadow:none;
+}
+.upicon-suggestions .upicon-chip{
+  border-radius:999px;
+  background:var(--white);
+  box-shadow:0 5px 12px -7px rgba(14,46,47,0.40), 0 1px 2px rgba(14,46,47,0.08);
+}
+.upicon-suggestions .upicon-chip:hover,
+.upicon-suggestions .upicon-chip:focus-visible{ background:var(--accent); }
+.upicon-suggestions .upicon-chip:active{ background:var(--accent); }
+#upicon-textInput{
+  background:var(--white);
+  border-color:rgba(47,175,175,0.35);
+  border-radius:999px;
+}
+.upicon-icon-btn{
+  background:var(--white);
+  border-color:rgba(47,175,175,0.35);
+  border-radius:50%;
+}
+.upicon-icon-btn:hover{ background:#D2EBE8; border-color:var(--teal-400); }
+.upicon-send-btn{ border-radius:50%; }
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions .upicon-chip{ border-radius:999px; }
+}
+
+
+/* Round 10 - slimmer footer (about 20px shorter) */
+.upicon-suggestions{ gap:7px; padding:6px 12px 5px; }
+.upicon-suggestions .upicon-chip{ height:28px; }
+.upicon-suggestions .upicon-chip::before{ width:17px; height:17px; }
+.upicon-composer{ padding:2px 12px 8px; gap:7px; }
+#upicon-textInput{ height:34px; padding:0 14px; }
+.upicon-icon-btn, .upicon-send-btn{ width:34px; height:34px; }
+.upicon-icon-btn svg{ width:18px; height:18px; }
+.upicon-send-btn svg{ width:16px; height:16px; }
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions{ gap:6px; padding:5px 10px 4px; }
+  .upicon-suggestions .upicon-chip{ height:27px; }
+  .upicon-composer{ padding:2px 10px 7px; gap:6px; }
+  #upicon-textInput{ height:32px; padding:0 12px; }
+  .upicon-icon-btn, .upicon-send-btn{ width:32px; height:32px; }
+}
+
+
+/* Round 11 - footer background: warm marigold cream (was light teal) */
+.upicon-suggestions,
+.upicon-composer{ background:#FCEBD5; }
+.upicon-suggestions{ border-top:1px solid rgba(218,127,40,0.30); }
+#upicon-textInput,
+.upicon-icon-btn{ border-color:rgba(218,127,40,0.35); }
+.upicon-icon-btn:hover{ background:#FBE0BF; border-color:var(--marigold-400); }
+
+
+/* =====================================================================
+   Round 12 - rounded top edge + connected icon capsule.
+   - the footer's top corners are rounded (like a bottom sheet)
+   - the 4 icons sit inside ONE white capsule, separated by thin short
+     dividers; hover fills the touched icon with its own rounded pill,
+     so the joints never look square
+   ===================================================================== */
+.upicon-suggestions{
+  --pt:6px; --pr:12px; --pb:5px;
+  gap:0;
+  padding:var(--pt) var(--pr) var(--pb);
+  border-top:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -1px 0 rgba(218,127,40,0.30), 0 -12px 22px -16px rgba(14,46,47,0.35);
+}
+.upicon-suggestions::before{
+  content:"";
+  position:absolute;
+  inset:var(--pt) var(--pr) var(--pb);
+  background:var(--white);
+  border-radius:999px;
+  box-shadow:0 5px 12px -8px rgba(14,46,47,0.40), 0 1px 2px rgba(14,46,47,0.08);
+  z-index:0;
+}
+.upicon-suggestions::after{
+  content:"";
+  position:absolute;
+  inset:calc(var(--pt) + 6px) var(--pr) calc(var(--pb) + 6px);
+  pointer-events:none;
+  z-index:1;
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(218,127,40,0.30) calc(25% - 0.5px), rgba(218,127,40,0.30) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(218,127,40,0.30) calc(50% - 0.5px), rgba(218,127,40,0.30) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(218,127,40,0.30) calc(75% - 0.5px), rgba(218,127,40,0.30) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+.upicon-suggestions .upicon-chip{
+  z-index:2;
+  height:28px;
+  margin:3px 4px;
+  background:transparent;
+  box-shadow:none;
+}
+.upicon-suggestions .upicon-chip:hover,
+.upicon-suggestions .upicon-chip:focus-visible{
+  background:var(--accent);
+  transform:none;
+  box-shadow:0 6px 12px -8px var(--accent);
+}
+.upicon-suggestions .upicon-chip:active{ background:var(--accent); transform:scale(.95); }
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions{ --pt:5px; --pr:10px; --pb:4px; }
+  .upicon-suggestions .upicon-chip{ height:27px; margin:2px 3px; }
+}
+
+
+/* Round 13 - icon strip is full-bleed: no outer padding or margins, the
+   four buttons fill the strip edge to edge (left, right, top, bottom). */
+.upicon-suggestions{
+  --pt:0px; --pr:0px; --pb:0px;
+  padding:0;
+  gap:0;
+  background:var(--white);
+}
+.upicon-suggestions::before{ display:none; }
+.upicon-suggestions::after{ inset:7px 0; }
+.upicon-suggestions .upicon-chip{
+  height:38px;
+  margin:0;
+  border-radius:999px;
+}
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions .upicon-chip{ height:34px; margin:0; }
+  .upicon-suggestions::after{ inset:6px 0; }
+}
+
+
+/* Round 14 - on hover the WHOLE button area rises and fills with its colour
+   (a rounded-top tab that pops up out of the strip; the shadow below fills
+   the gap so the colour covers the entire area edge to edge). */
+.upicon-suggestions .upicon-chip{
+  border-radius:14px 14px 0 0;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.upicon-suggestions .upicon-chip:hover,
+.upicon-suggestions .upicon-chip:focus-visible{
+  background:var(--accent);
+  border-radius:14px 14px 0 0;
+  transform:translateY(-6px);
+  box-shadow:0 6px 0 var(--accent), 0 -8px 16px -10px var(--accent);
+}
+.upicon-suggestions .upicon-chip:active{
+  background:var(--accent);
+  transform:translateY(-3px);
+  box-shadow:0 3px 0 var(--accent);
+}
+@container upicon-panel (max-width:340px){
+  .upicon-suggestions .upicon-chip:hover,
+  .upicon-suggestions .upicon-chip:focus-visible{ transform:translateY(-5px); box-shadow:0 5px 0 var(--accent), 0 -8px 16px -10px var(--accent); }
+}
+
+
+/* Round 15 - one separate footer colour (soft lavender) shared by the
+   button strip AND the input row, so they read as a single block. */
+.upicon-suggestions,
+.upicon-composer{ background:#EAE6F7; }
+.upicon-suggestions{
+  box-shadow:0 -1px 0 rgba(108,92,170,0.25), 0 -12px 22px -16px rgba(14,46,47,0.35);
+}
+.upicon-suggestions::after{
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(108,92,170,0.28) calc(25% - 0.5px), rgba(108,92,170,0.28) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(108,92,170,0.28) calc(50% - 0.5px), rgba(108,92,170,0.28) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(108,92,170,0.28) calc(75% - 0.5px), rgba(108,92,170,0.28) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+#upicon-textInput,
+.upicon-icon-btn{ border-color:rgba(108,92,170,0.32); }
+.upicon-icon-btn:hover{ background:#DDD6F3; border-color:#9B8FD6; }
+
+
+/* Round 16 - footer in deep teal, echoing the header so the chat is
+   bookended dark / cream / dark. Icons use brighter tints of their colours
+   so they glow on the dark background; hover still fills the whole area
+   with the button's own colour. */
+.upicon-suggestions,
+.upicon-composer{ background:#14403F; }
+.upicon-suggestions{
+  box-shadow:0 -1px 0 rgba(255,255,255,0.10), 0 -12px 22px -16px rgba(14,46,47,0.55);
+}
+.upicon-suggestions::after{
+  background:linear-gradient(to right,
+    transparent calc(25% - 0.5px), rgba(255,255,255,0.18) calc(25% - 0.5px), rgba(255,255,255,0.18) calc(25% + 0.5px), transparent calc(25% + 0.5px),
+    transparent calc(50% - 0.5px), rgba(255,255,255,0.18) calc(50% - 0.5px), rgba(255,255,255,0.18) calc(50% + 0.5px), transparent calc(50% + 0.5px),
+    transparent calc(75% - 0.5px), rgba(255,255,255,0.18) calc(75% - 0.5px), rgba(255,255,255,0.18) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+.upicon-suggestions .upicon-chip[data-chip="initiatives"]{ --icon:#7FE3E3; }
+.upicon-suggestions .upicon-chip[data-chip="careers"]{ --icon:#F7AE68; }
+.upicon-suggestions .upicon-chip[data-chip="schemes"]{ --icon:#8FDDB6; }
+.upicon-suggestions .upicon-chip[data-chip="spotlight"]{ --icon:#F8D164; }
+.upicon-suggestions .upicon-chip::before{ background:var(--icon, var(--accent)); }
+#upicon-textInput,
+.upicon-icon-btn{ border-color:rgba(255,255,255,0.22); }
+.upicon-icon-btn:hover{ background:#D7F0EE; border-color:var(--teal-400); }
+.upicon-icon-btn[data-state="speaking"],
+.upicon-icon-btn[data-state="paused"]{ background:var(--teal-500); border-color:var(--teal-500); color:var(--white); }
+/* empty box: teal send (navy would vanish on the dark footer); typing: marigold */
+#upicon-textInput:placeholder-shown ~ .upicon-send-btn{
+  background:linear-gradient(145deg, var(--teal-400), var(--teal-500));
+  box-shadow:0 6px 12px -8px rgba(0,0,0,0.5);
+}
+
+
+/* Round 17 - header + footer in a slightly lighter teal (one step up from
+   the deep teal, still clearly teal so the white text and glowing icons
+   keep their contrast). */
+.upicon-panel-header{ background: linear-gradient(120deg, #1C5453, #2C807D); }
+.upicon-suggestions,
+.upicon-composer{ background:#25706D; }
+.upicon-suggestions{
+  box-shadow:0 -1px 0 rgba(255,255,255,0.14), 0 -12px 22px -16px rgba(14,46,47,0.45);
+}
+.upicon-icon-btn:hover{ background:#E1F4F2; }
+/* empty box: marigold send reads well on the mid-teal footer */
+#upicon-textInput:placeholder-shown ~ .upicon-send-btn{
+  background:linear-gradient(145deg, var(--marigold-400), var(--marigold-500));
+}
+
 `;
     document.head.appendChild(style);
 
@@ -349,7 +1055,7 @@
 <section id="upicon-panel" class="hidden" role="dialog" aria-label="UPICON Mitra chat">
   <header class="upicon-panel-header">
     <div class="upicon-header-id">
-      <div class="upicon-header-avatar">U</div>
+      <div class="upicon-header-avatar">U<video class="upicon-avatar-video" id="upicon-avatarVideo" autoplay loop muted playsinline preload="auto" aria-hidden="true"></video></div>
       <div>
         <p class="upicon-header-title" id="upicon-headerTitle">UPICON Mitra</p>
         <p class="upicon-header-sub" id="upicon-headerSub">Online</p>
@@ -374,10 +1080,10 @@
   <main id="upicon-messages" class="upicon-messages" aria-live="polite"></main>
 
   <div id="upicon-suggestions" class="upicon-suggestions">
-    <button class="upicon-chip" data-chip="initiatives" data-q-en="What initiatives does UPICON run?" data-q-hi="UPICON की मुख्य पहलें कौन सी हैं?">Initiatives</button>
-    <button class="upicon-chip" data-chip="careers" data-q-en="Are there any job openings right now?" data-q-hi="क्या अभी कोई नौकरी के अवसर उपलब्ध हैं?">Careers</button>
-    <button class="upicon-chip" data-chip="schemes" data-q-en="Tell me about current schemes" data-q-hi="वर्तमान योजनाओं के बारे में बताएं">Schemes</button>
-    <button class="upicon-chip" data-chip="news" data-q-en="Latest news updates" data-q-hi="नवीनतम समाचार अपडेट बताएं">News</button>
+    <button class="upicon-chip" data-chip="initiatives" data-label="Initiatives" aria-label="Initiatives" data-q-en="What initiatives does UPICON run?" data-q-hi="UPICON की मुख्य पहलें कौन सी हैं?">Initiatives</button>
+    <button class="upicon-chip" data-chip="careers" data-label="Careers" aria-label="Careers" data-q-en="Are there any job openings right now?" data-q-hi="क्या अभी कोई नौकरी के अवसर उपलब्ध हैं?">Careers</button>
+    <button class="upicon-chip" data-chip="schemes" data-label="Schemes" aria-label="Schemes" data-q-en="Tell me about current schemes" data-q-hi="वर्तमान योजनाओं के बारे में बताएं">Schemes</button>
+    <button class="upicon-chip" data-chip="spotlight" data-label="Spotlight" aria-label="Spotlight" data-q-en="What is in the spotlight right now?" data-q-hi="अभी स्पॉटलाइट में क्या है?">Spotlight</button>
   </div>
 
   <form id="upicon-composer" class="upicon-composer">
@@ -427,6 +1133,16 @@
     launcherVideo.addEventListener("loadeddata", () => {
       launcherVideo.play().catch(() => {});
     });
+    // Same startup video in the chat header avatar (falls back to the "U").
+    const avatarVideo = el("upicon-avatarVideo");
+    avatarVideo.muted = true;
+    avatarVideo.defaultMuted = true;
+    attachWithFallback(avatarVideo, "launcher-icon.mp4", () => {
+      avatarVideo.hidden = true;
+    });
+    avatarVideo.addEventListener("loadeddata", () => {
+      avatarVideo.play().catch(() => {});
+    });
     const panel = el("upicon-panel");
     const closeBtn = el("upicon-closeBtn");
     const messagesEl = el("upicon-messages");
@@ -460,7 +1176,7 @@
         placeholder: "Type your question…",
         listening: "Listening…",
         greetOnOpen: "Hi! 👋 I'm UPICON Mitra. Ask me anything about UPICON — initiatives, schemes, news, careers and more.",
-        chips: { initiatives: "Initiatives", careers: "Careers", schemes: "Schemes", news: "News" },
+        chips: { initiatives: "Initiatives", careers: "Careers", schemes: "Schemes", spotlight: "Spotlight" },
       },
       hi: {
         name: "UPICON मित्र",
@@ -468,7 +1184,7 @@
         placeholder: "अपना सवाल लिखें…",
         listening: "सुन रहा हूँ…",
         greetOnOpen: "नमस्ते! 👋 मैं UPICON मित्र हूँ। UPICON से जुड़ी पहलों, योजनाओं, समाचार, करियर या किसी भी जानकारी के बारे में पूछें।",
-        chips: { initiatives: "पहल", careers: "करियर", schemes: "योजनाएँ", news: "समाचार" },
+        chips: { initiatives: "पहल", careers: "करियर", schemes: "योजनाएँ", spotlight: "स्पॉटलाइट" },
       },
     };
 
@@ -486,7 +1202,12 @@
       textInput.placeholder = COPY[lang].placeholder;
       suggestionsEl.querySelectorAll(".upicon-chip[data-chip]").forEach((chip) => {
         const key = chip.dataset.chip;
-        if (COPY[lang].chips[key]) chip.textContent = COPY[lang].chips[key];
+        if (COPY[lang].chips[key]) {
+      const label = COPY[lang].chips[key];
+      chip.textContent = label;
+      chip.dataset.label = label;            // used by the hover name tag
+      chip.setAttribute("aria-label", label);
+    }
       });
     }
 
@@ -698,46 +1419,143 @@
     }
 
     async function deliverReply(trimmed, typingBubble) {
+      const fallbackText =
+        currentLang === "hi"
+          ? "माफ़ कीजिए, अभी जवाब देने में दिक्कत आ रही है। कृपया थोड़ी देर बाद पुनः प्रयास करें।"
+          : "Sorry, I'm having trouble responding right now. Please try again in a moment.";
+
+      const render = (bubble, text) => {
+        if (window.marked && window.DOMPurify) {
+          bubble.innerHTML = window.DOMPurify.sanitize(window.marked.parse(text));
+        } else {
+          bubble.textContent = text;
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      };
+
+      let bubble = null;   // created on first streamed token
+      let fullText = "";
+      let extras = []; // follow-up messages (top item, link) sent as separate bubbles
+      // Reveal the reply at a steady, readable pace instead of dumping each network
+      // chunk the moment it arrives. Lower STREAM_CHARS_PER_SEC = slower typing.
+      const STREAM_CHARS_PER_SEC = 30;
+      let shown = 0;
+      let pacer = null;
+      let carry = 0;
+      const pacerTick = () => {
+        if (!bubble) return;
+        const backlog = fullText.length - shown;
+        if (backlog <= 0) return;
+        // steady pace, plus a gentle catch-up so a long reply never lags far behind
+        carry += STREAM_CHARS_PER_SEC * 0.04;
+        let step = Math.floor(carry);
+        carry -= step;
+        step += Math.floor(backlog / 200);
+        if (step < 1) return;
+        let next = Math.min(fullText.length, shown + step);
+        // finish the current word so text doesn't appear cut mid-word
+        while (next < fullText.length && !/\s/.test(fullText[next - 1]) && next - shown < step + 12) next++;
+        shown = next;
+        render(bubble, fullText.slice(0, shown));
+      };
+      const startPacer = () => { if (!pacer) pacer = setInterval(pacerTick, 40); };
+      const stopPacer = () => { if (pacer) { clearInterval(pacer); pacer = null; } };
+      const drainPacer = () => new Promise((resolve) => {
+        if (!bubble) return resolve();
+        startPacer();
+        const wait = setInterval(() => {
+          if (shown >= fullText.length) { clearInterval(wait); stopPacer(); resolve(); }
+        }, 40);
+      });
+
       try {
-        const resp = await fetch(`${API_BASE}/chat`, {
+        const resp = await fetch(`${API_BASE}/chat/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: trimmed,
-            session_id: sessionId,
-            lang: currentLang,
-          }),
+          body: JSON.stringify({ message: trimmed, session_id: sessionId, lang: currentLang }),
         });
+        if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
 
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let streamError = false;
 
-        sessionId = data.session_id;
-        localStorage.setItem("upicon_session_id", sessionId);
+        const handleLine = (line) => {
+          if (!line.trim()) return;
+          let evt;
+          try { evt = JSON.parse(line); } catch { return; }
 
-        resolveTypingBubble(typingBubble, data.reply);
-        lastBotReply = data.reply;
+          if (evt.session_id) {
+            sessionId = evt.session_id;
+            localStorage.setItem("upicon_session_id", sessionId);
+          }
+          if (evt.error) streamError = true;
+          if (evt.new_message) { extras.push(""); return; }
+          if (evt.delta && extras.length) { extras[extras.length - 1] += evt.delta; return; }
+          if (evt.delta) {
+            fullText += evt.delta;
+            if (!bubble) {
+              bubble = document.createElement("div");
+              bubble.className = "upicon-msg bot";
+              typingBubble.replaceWith(bubble); // swap dots -> live bubble, same spot
+            }
+            startPacer();
+          }
+        };
 
-        // If a read-aloud session was already active (playing or paused)
-        // when this new reply arrived, jump straight to reading it instead
-        // of the old message - otherwise stay silent until speaker is clicked.
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split("\n");
+          buf = lines.pop(); // keep any partial line for the next chunk
+          lines.forEach(handleLine);
+        }
+        if (buf) handleLine(buf);
+
+        if (!fullText) throw new Error(streamError ? "stream error" : "empty reply");
+
+        await drainPacer(); // let the typing finish at its steady pace
+        render(bubble, fullText); // final render with the complete text
+        messageLog.push({ role: "bot", text: fullText });
+        sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+        lastBotReply = fullText;
+        // Follow-up messages (top item, then link): each in its own bubble,
+        // shown after a short "typing" pause so they read as separate messages.
+        for (const extra of extras) {
+          const extraText = extra.trim();
+          if (!extraText) continue;
+          const typing = addTypingIndicator();
+          await new Promise((r) => setTimeout(r, 700));
+          const extraBubble = document.createElement("div");
+          extraBubble.className = "upicon-msg bot";
+          typing.replaceWith(extraBubble);
+          render(extraBubble, extraText);
+          messageLog.push({ role: "bot", text: extraText });
+          sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+        }
+
         if (speechState === "speaking") {
-          speakText(data.reply);
+          speakText(fullText);
         } else if (speechState === "paused") {
-          // Paused, then a new reply arrived: drop the old paused position so
-          // the next speaker click reads the NEW reply from the start.
           speechChunks = [];
           speechChunkIndex = 0;
           speechState = "idle";
           updateSpeakerUI();
         }
       } catch (err) {
-        const fallback =
-          currentLang === "hi"
-            ? "माफ़ कीजिए, अभी जवाब देने में दिक्कत आ रही है। कृपया थोड़ी देर बाद पुनः प्रयास करें।"
-            : "Sorry, I'm having trouble responding right now. Please try again in a moment.";
-        resolveTypingBubble(typingBubble, fallback);
         console.error(err);
+        if (bubble && fullText) {
+          // Stream broke midway: keep what arrived instead of wiping it.
+          stopPacer();
+          render(bubble, fullText);
+          messageLog.push({ role: "bot", text: fullText });
+          sessionStorage.setItem("upicon_messages", JSON.stringify(messageLog));
+          lastBotReply = fullText;
+        } else {
+          resolveTypingBubble(typingBubble, fallbackText);
+        }
       }
     }
 
@@ -782,6 +1600,9 @@
 
     function startListening() {
       if (!recognizer || isListening) return;
+      // Stop the bot talking the moment the user taps the mic - otherwise
+      // the recognizer would also pick up the bot's own voice.
+      if (hasSpeechSynthesis && speechState !== "idle") stopSpeech();
       recognizer.lang = currentLang === "hi" ? "hi-IN" : "en-IN";
       isListening = true;
       micBtn.classList.add("listening");

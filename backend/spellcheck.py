@@ -28,6 +28,11 @@ _vocab_set: set[str] = set()
 _lock = threading.Lock()
 
 _MATCH_THRESHOLD = 84  # 0-100, rapidfuzz ratio - conservative on purpose
+# Short words are easy to 'correct' into the wrong word (odo -> odor), so they
+# need a near-exact match. Domain terms (config.DOMAIN_TERMS) get first pick.
+_SHORT_WORD_MAX_LEN = 4
+_SHORT_WORD_THRESHOLD = 90
+_DOMAIN_THRESHOLD = 80
 _MIN_WORD_LEN = 3  # don't try to "correct" very short tokens (of, ka, ke, hi, ...)
 
 
@@ -79,10 +84,22 @@ def correct_query(text: str) -> str:
     def _fix(match: re.Match) -> str:
         word = match.group(0)
         lower = word.lower()
-        if len(lower) < _MIN_WORD_LEN or lower in _vocab_set:
+        if len(lower) < _MIN_WORD_LEN:
             return word
+        domain = getattr(config, "DOMAIN_TERMS", [])
+        if lower in domain or lower in getattr(config, "PROTECTED_WORDS", ()):
+            return word
+        # 1) mistyped UPICON term? pull it toward the real term first
+        if lower not in _vocab_set and domain:
+            d = process.extractOne(lower, domain, scorer=fuzz.ratio)
+            if d and d[1] >= _DOMAIN_THRESHOLD:
+                return d[0]
+        if lower in _vocab_set:
+            return word
+        # 2) general site vocabulary, stricter for very short words
+        threshold = _SHORT_WORD_THRESHOLD if len(lower) <= _SHORT_WORD_MAX_LEN else _MATCH_THRESHOLD
         result = process.extractOne(lower, vocab, scorer=fuzz.ratio)
-        if result and result[1] >= _MATCH_THRESHOLD:
+        if result and result[1] >= threshold:
             return result[0]
         return word
 

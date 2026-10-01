@@ -12,28 +12,38 @@ import re
 
 from rapidfuzz import fuzz
 
+import config
+
 GREETINGS = [
     "hi", "hii", "hiii", "hello", "hey", "yo", "hola",
     "namaste", "namaskar", "namaskaar", "pranam",
     "good morning", "good afternoon", "good evening", "good night",
     "suprabhat",
+    # Devanagari
+    "नमस्ते", "नमस्कार", "प्रणाम", "हैलो", "हेलो", "हाय", "हलो", "सुप्रभात",
 ]
 
 THANKS = [
     "thanks", "thank you", "thankyou", "thanx", "thnx", "ty",
     "dhanyawad", "dhanyavad", "shukriya", "bahut dhanyawad", "thanks a lot",
     "great thanks", "appreciate it",
+    # Devanagari
+    "धन्यवाद", "बहुत धन्यवाद", "शुक्रिया", "थैंक्स", "थैंक यू", "थैंक्यू",
 ]
 
 GOODBYE_STOP = [
     "bye", "goodbye", "bye bye", "see you", "stop", "exit", "quit",
     "band karo", "alvida", "phir milenge", "chalta hoon", "chalti hoon",
     "ruko", "bas", "cancel",
+    # Devanagari
+    "अलविदा", "बाय", "फिर मिलेंगे", "रुकिए", "बस",
 ]
 
 NOTHING_NEGATIVE = [
     "no", "nope", "nah", "no thanks", "nothing", "not now", "never mind",
     "nahi", "nhi", "kuch nahi", "koi nahi", "bas kuch nahi",
+    # Devanagari
+    "नहीं", "नही", "कुछ नहीं", "कुछ नही", "कोई नहीं",
 ]
 
 _ALL_GROUPS = {
@@ -48,7 +58,8 @@ _FUZZY_THRESHOLD = 82  # 0-100, rapidfuzz partial-ratio score
 
 def _normalize(text: str) -> str:
     text = text.lower().strip()
-    text = re.sub(r"[^\w\s]", "", text)
+    # keep Devanagari (incl. vowel signs/virama, which are not \w) intact
+    text = re.sub(r"[^\w\s\u0900-\u097F]", "", text)
     return text
 
 
@@ -64,12 +75,20 @@ def detect(text: str) -> str | None:
 
     word_count = len(norm.split())
 
+    # A message that names a UPICON topic (odop, yojana, cmyuva...) is a real
+    # question, never chit-chat - even if it is short.
+    tokens = set(norm.split())
+    if tokens & set(getattr(config, "DOMAIN_TERMS", [])):
+        return None
+
     for label, phrases in _ALL_GROUPS.items():
-        # exact / substring match first (cheap, precise)
+        # exact / whole-word match first (cheap, precise). Whole-word matters:
+        # plain substring matching made "yojana" match "yo" (greeting) and
+        # "this"/"which" match "hi".
         if norm in phrases:
             return label
         for phrase in phrases:
-            if phrase in norm and word_count <= 5:
+            if word_count <= 5 and re.search(rf"(?<![\w\u0900-\u097F]){re.escape(phrase)}(?![\w\u0900-\u097F])", norm):
                 return label
 
     # only fuzzy-match very short utterances — a long sentence that merely

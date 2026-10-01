@@ -17,6 +17,10 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY is not set.")
 GROQ_CHAT_MODEL = os.getenv("GROQ_CHAT_MODEL")
 GROQ_WHISPER_MODEL = os.getenv("GROQ_WHISPER_MODEL")
+# Optional smaller/faster model used only to clean up messy user messages
+# (see query_rewrite.py). Leave unset to reuse GROQ_CHAT_MODEL. Must be a
+# model your Groq account can access.
+GROQ_QUERY_MODEL = os.getenv("GROQ_QUERY_MODEL") or None
 
 # ---------------------------------------------------------------------------
 # UPICON site — static crawl target + dynamic API
@@ -34,6 +38,7 @@ EXTRA_STATIC_URLS = [
     "https://upicon.in/cmyuva",
     "https://upicon.in/karigar",
     "https://upicon.in/business-units",
+    "https://upicon.in/bihar-elderine",
     # Youth Adda's actual content lives on its own domain, not upicon.in -
     # discover_links()/_scrape_links() only follow links within SITE_ROOT,
     # so this would never get picked up automatically. Listed explicitly
@@ -132,4 +137,31 @@ PAGE_ALIASES = {
     "odop": ["odop", "one district one product", "ओडीओपी", "एक जनपद एक उत्पाद"],
     "business-units": ["business unit", "business units"],
     "karigar": ["karigar", "कारीगर"],
+    # slug on the site is "bihar-elderine"; visitors spell it many ways
+    "bihar-elderine": ["bihar elderline", "bihar elderine", "bihar elder line", "bihar elderly line",
+                       "elderline", "elderine", "elder line", "elderly line", "14567",
+                       "बिहार एल्डरलाइन", "बिहार एल्डरिन", "बिहार एल्डर लाइन", "एल्डरलाइन", "एल्डरिन"],
+}
+
+# ---------------------------------------------------------------------------
+# Domain terms - UPICON-specific words the spellchecker must never "correct"
+# into an unrelated word, and that mistyped versions get pulled TOWARD
+# (e.g. "odo"/"odp" -> "odop", not "odor"). Add new scheme/program names here.
+# ---------------------------------------------------------------------------
+DOMAIN_TERMS = [
+    "upicon", "odop", "cmyuva", "yuva", "udyami", "abhiyan", "msme", "karigar",
+    "adda", "youth", "scheme", "yojana", "initiative", "initiatives", "career",
+    "careers", "subsidy", "district", "product", "business", "units",
+    "elderline", "elderine",
+]
+
+# Common Hinglish words the spellchecker must leave alone (it only knows the
+# site's English vocabulary and would otherwise bend these into English words).
+PROTECTED_WORDS = {
+    "kya", "hai", "hain", "kaise", "kese", "kaisa", "kab", "kb", "kahan", "kaha", "kha",
+    "kaun", "kon", "kitna", "kitne", "kitni", "batao", "btao", "bataiye", "bataye",
+    "samjhao", "milega", "milegi", "chahiye", "chahie", "mujhe", "mera", "meri",
+    "hamare", "apna", "uska", "iska", "unka", "nokri", "naukri", "bharti", "yojna",
+    "sarkar", "sarkari", "dukan", "kaam", "karna", "karni", "karo", "kare", "lena",
+    "dena", "wala", "wali", "nahi", "nhi", "aur", "ya", "par", "pta", "pata",
 }
